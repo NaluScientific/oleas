@@ -36,6 +36,7 @@ class GateDelayPmtDacSweep(NdSweep):
         self._num_captures = num_captures
 
         self._pmt_settle_time: float = 0
+        self._read_window = None
 
         self._dac_address = 0
         self._dac_channel = 0
@@ -53,15 +54,13 @@ class GateDelayPmtDacSweep(NdSweep):
         """
         self._pmt_settle_time = t
 
-    def run(self) -> list:
-        """Run the gate delay/PMT dac sweep
+    def set_read_window(self, read_window: tuple):
+        self._read_window = read_window
 
-        Returns:
-            list: _description_
-        """
-        board = self._board
+    def run(self) -> list:
+        """Run the gate delay/PMT dac sweep"""
         logger.info('Running sweep')
-        with helpers.readout(board) as daq:
+        with helpers.readout(self._board, self._read_window) as daq:
             self._daq = daq
             return super().run()
 

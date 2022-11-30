@@ -21,10 +21,10 @@ logger = logging.getLogger(__name__)
 
 # ======================================
 # array of gate delay values
-DELAY_VALUES = np.arange(0, 1000, 10)
+DELAY_VALUES = np.arange(0, 1000, 100)
 
 # array of pmt dac values
-DAC_VALUES = np.arange(0, 4096, 100)
+DAC_VALUES = np.arange(0, 1000, 200)
 
 # number of events per (delay, dac) pair
 NUM_CAPTURES = 3
@@ -35,6 +35,9 @@ DAC_CHANNEL = 0
 
 # Time in seconds to let the PMT settle after adjusting the gain
 PMT_SETTLE_TIME = 0.5
+
+# The window to read as (windows, lookback, write after trig)
+READ_WINDOW = (8, 16, 16)
 # ======================================
 
 
@@ -53,6 +56,7 @@ def main():
     board = get_board_from_args(args)
 
     sweeper = GateDelayPmtDacSweep(board, DELAY_VALUES, DAC_VALUES, NUM_CAPTURES)
+    sweeper.set_read_window(READ_WINDOW)
     sweeper.configure_dac(DAC_ADDRESS, DAC_CHANNEL)
     sweeper.set_pmt_settling_time(PMT_SETTLE_TIME)
     sweep_data = sweeper.run()
