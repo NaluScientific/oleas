@@ -46,28 +46,29 @@ def main():
     if args.debug:
         setup_logger_output()
 
-    # make sure output file is valid first to avoid wasting time later
+    # make sure output file is valid first to avoid problems that could come up later
     if not is_valid_output_file(args.output):
         print(f'Output file is not valid: {args.output}')
         sys.exit(1)
 
-
     # ==========================================
     board = get_board_from_args(args)
 
+    # Set up the sweep controller
     sweeper = GateDelayPmtDacSweep(board, DELAY_VALUES, DAC_VALUES, NUM_CAPTURES)
     sweeper.set_read_window(READ_WINDOW)
     sweeper.configure_dac(DAC_ADDRESS, DAC_CHANNEL)
     sweeper.set_pmt_settling_time(PMT_SETTLE_TIME)
+
+    # Run the sweep
     sweep_data = sweeper.run()
+
+    # ==========================================
     output = {
         'dac': DAC_VALUES,
         'delay': DELAY_VALUES,
         'data': sweep_data,
     }
-
-    # ==========================================
-
     save_pickle(args.output, output)
 
 
