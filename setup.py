@@ -6,7 +6,9 @@ setup(
     name="oleas",
     description="OLEAS readout",
     python_requires=">=3.9",
-    install_requires=[],
+    install_requires=[
+        'dynaconf==3.1.11'
+    ],
     entry_points = {
         'console_scripts': [
             'read_sensors=oleas.scripts.read_sensors:main',

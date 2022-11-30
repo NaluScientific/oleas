@@ -133,3 +133,5 @@ ipython/
 bin/configs/recents.cfg
 cov.xml
 coverage/
+# Ignore dynaconf secret files
+.secrets.*

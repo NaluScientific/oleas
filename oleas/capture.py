@@ -20,8 +20,8 @@ def get_events(board, count: int, read_window: tuple, attempts: int=5) -> list[d
     Args:
         board (Board): the board object
         count (int): number of events to read
-        attempts (int): Number of attempts to read each event. Defaults to 5.
         read_window (tuple): read window tuple: (windows, lookback, write after trig)
+        attempts (int): Number of attempts to read each event. Defaults to 5.
 
     Returns:
         list[dict]: list of events
@@ -51,7 +51,7 @@ def _capture_data(board, daq_buffer: deque, count: int, attempts: int):
                 waiter = EventWaiter(daq_buffer, timeout=1)
                 waiter.start(blocking=True)
                 output.append(daq_buffer.popleft())
-            except TimeoutError:
+            except (TimeoutError, IndexError):
                 logger.info('Failed to get event, trying again...')
                 continue
             else:
