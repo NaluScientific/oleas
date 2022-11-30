@@ -6,3 +6,7 @@ class DataCaptureError(Exception):
 
 class BoardStartupError(Exception):
     pass
+
+
+class SweepConfigError(Exception):
+    pass

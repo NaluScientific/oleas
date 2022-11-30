@@ -1,20 +1,83 @@
+from dataclasses import dataclass
+import logging
+import time
 
-from .capture import get_events
-from .exceptions import DataCaptureError
+import numpy as np
+
+from naludaq.communication import ControlRegisters
+
+from oleas.capture import get_events
+from oleas.dac7578 import DAC7578
+from oleas.exceptions import DataCaptureError
 
 
-DEFAULT_NUM_CAPTURES=10
-DEFAULT_READ_WINDOW=(8, 16, 16)
+logger = logging.getLogger(__name__)
+
+@dataclass
+class GatedPmtSweepConfig:
+    pmt_dac_values: list[int]
+    gate_delay_values: list[int]
+    read_window: tuple
+    pmt_dac_addr: int
+    pmt_dac_channel: int
+    num_captures: int
 
 
 
-def move_gate(board, start, width):
-    raise NotImplementedError() # TODO: need to know how to configure the gate
+def run_sweep(board, config: GatedPmtSweepConfig) -> dict:
+    """Run a sweep over the gate delay and PMT gain.
+
+    Args:
+        board (Board): the board object.
+        config (GatedPmtSweepConfig): the config to use for the sweep.
+
+    Returns:
+        dict: the sweep data in a dict object.
+    """
+    gate_delay_values = config.gate_delay_values
+    pmt_dac_values = config.pmt_dac_values
+    read_window = config.read_window
+    num_captures = config.num_captures
+    pmt_addr = config.pmt_dac_addr
+    pmt_channel = config.pmt_dac_channel
+
+    output = {
+        'pmt_gains': np.repeat(pmt_dac_values, len(gate_delay_values)), # x
+        'gate_delays': np.tile(gate_delay_values, len(pmt_dac_values)), # y
+        'data': [None for _ in range(len(gate_delay_values)) for _ in range(len(pmt_dac_values))], # z
+    }
+
+    for i, dac_value in enumerate(pmt_dac_values):
+        set_pmt_gain(board, pmt_addr, pmt_channel, dac_value)
+
+        for j, delay in enumerate(gate_delay_values):
+            set_gate_delay(board, delay)
+
+            data = get_events(board, num_captures, read_window=read_window)
+            output['data'][i * len(gate_delay_values) + j] = data
+
+    return output
 
 
-# TODO: need gate sweep parameters
-def run_gate_sweep(board, start, stop, step, width, num_captures=DEFAULT_NUM_CAPTURES, read_window=DEFAULT_READ_WINDOW) -> dict:
+def set_gate_delay(board, delay: int):
+    """Set the gate delay
+    """
+    _write_control_register(board, 'oleas_delay_a', delay)
+    _write_control_register(board, 'oleas_delay_b', delay)
 
-    for i in range(start, stop, step):
-        move_gate(board, start, width)
-        events = get_events(board, num_captures, read_window=read_window)
+
+def set_pmt_gain(board, addr: int, channel: int, dac_counts: int):
+    """Set the PMT gain by updating the DAC
+
+    Args:
+        board (Board): board object
+        addr (int): 8-bit address of DAC
+        channel (int): channel on DAC to set
+        dac_counts (int): new DAC value
+    """
+    dac = DAC7578(board, addr)
+    dac.set_dacs({channel: dac_counts})
+
+
+def _write_control_register(board, name: str, value: int):
+    ControlRegisters(board).write(name, value)

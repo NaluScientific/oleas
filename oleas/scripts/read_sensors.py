@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 
 from oleas.board import get_board_from_args
-from oleas.cli import add_board_arguments
+from oleas.scripts._common import add_board_arguments
 from oleas.helpers import save_pickle
 from oleas.telemetry import read_sensors
 

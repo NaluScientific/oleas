@@ -1,0 +1,16 @@
+pmt_dac_values:
+  start: 0
+  stop: 4096
+  steps: 10
+gate_dac_values:
+  start: 0
+  stop: 4096
+  steps: 10
+pmt_dac:
+  address: 0x00
+  channel: 0
+num_captures: 10
+read_window:
+  windows: 8
+  lookback: 16
+  write_after_trig: 16

@@ -1,7 +1,6 @@
 from collections import deque
 import logging
 
-from naludaq.board import Board, startup_board
 from naludaq.daq import DebugDaq
 from naludaq.controllers import (
     get_board_controller,
@@ -15,27 +14,7 @@ from .exceptions import DataCaptureError
 logger = logging.getLogger(__name__)
 
 
-def start_readout(board, read_window=(8, 16, 16)):
-    """Start the readout"""
-    rc = get_readout_controller(board)
-    bc = get_board_controller(board)
-
-    rc.set_read_window(*read_window)
-    bc.start_readout('ext')
-
-
-def stop_readout(board):
-    """Stop an ongoing readout"""
-    bc = get_board_controller(board)
-    bc.stop_readout()
-
-
-def send_trigger(board):
-    """Send trigger to the board"""
-    raise NotImplementedError()
-
-
-def get_events(board, count: int, attempts: int=5, read_window=(8,16,16)) -> list[dict]:
+def get_events(board, count: int, read_window: tuple, attempts: int=5) -> list[dict]:
     """Get one or more events.
 
     Args:
@@ -45,7 +24,7 @@ def get_events(board, count: int, attempts: int=5, read_window=(8,16,16)) -> lis
         read_window (tuple): read window tuple: (windows, lookback, write after trig)
 
     Returns:
-        list[dict]: _description_
+        list[dict]: list of events
     """
     daq = DebugDaq(board)
     daq.start_capture()
@@ -81,3 +60,23 @@ def _capture_data(board, daq_buffer: deque, count: int, attempts: int):
             logger.error('Maximum number of attempts reached. Aborting.')
             raise DataCaptureError('Maximum number of attempts reached')
     return output
+
+
+def start_readout(board, read_window: tuple):
+    """Start the readout"""
+    rc = get_readout_controller(board)
+    bc = get_board_controller(board)
+
+    rc.set_read_window(*read_window)
+    bc.start_readout('ext')
+
+
+def stop_readout(board):
+    """Stop an ongoing readout"""
+    bc = get_board_controller(board)
+    bc.stop_readout()
+
+
+def send_trigger(board):
+    """Send trigger to the board"""
+    get_board_controller(board).toggle_trigger()
