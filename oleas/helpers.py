@@ -5,7 +5,7 @@ import yaml
 import numpy as np
 
 
-def save_pickle(obj, path):
+def save_pickle(path, obj):
     try:
         with open(path, 'wb') as f:
             pickle.dump(obj, f)

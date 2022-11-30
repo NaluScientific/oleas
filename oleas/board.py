@@ -15,7 +15,7 @@ def get_board(serial: str, model: str='aodsoc_aods', baud=None):
 
 def get_board_from_args(args) -> Board:
     model = args.model
-    baud = args.baud
+    baud = args.baudrate
     serial = args.serial
     logger.debug('Board arguments: model=%s, baud=%s, serial=%s', model, baud, serial)
 

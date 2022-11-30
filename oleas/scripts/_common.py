@@ -9,7 +9,7 @@ DEFAULT_STARTUP_FLAG = True
 
 def add_board_arguments(parser: argparse.ArgumentParser):
     # required
-    parser.add_argument('--serial', '-s', type=bool, required=True, help='FTDI serial number of board')
+    parser.add_argument('--serial', '-s', type=str, required=True, help='FTDI serial number of board')
 
     # optional
     parser.add_argument('--model', '-m', type=str, default=DEFAULT_BOARD_MODEL, help=f'Board model. Defaults to "{DEFAULT_BOARD_MODEL}"')

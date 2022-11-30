@@ -48,9 +48,10 @@ def _capture_data(board, daq_buffer: deque, count: int, attempts: int):
         for i in range(attempts):
             send_trigger(board)
             try:
-                waiter = EventWaiter(daq_buffer, timeout=1)
-                waiter.start(blocking=True)
-                output.append(daq_buffer.popleft())
+                # waiter = EventWaiter(daq_buffer, amount=1, timeout=1, interval=0.005)
+                # waiter.start(blocking=True)
+                # output.append(daq_buffer.popleft())
+                pass
             except (TimeoutError, IndexError):
                 logger.info('Failed to get event, trying again...')
                 continue

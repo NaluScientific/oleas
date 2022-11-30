@@ -26,16 +26,17 @@ def run_sweep(board) -> dict:
     Returns:
         dict: the sweep data in a dict object.
     """
-    gate_delays = np.linspace(
+    array_to_list = lambda arr: [x.item() for x in arr]
+    gate_delays = array_to_list(np.linspace(
         settings.sweep.gate_delay_start,
         settings.sweep.gate_delay_stop,
         settings.sweep.steps
-    ).astype(int)
-    pmt_gains = np.linspace(
+    ).astype(int))
+    pmt_gains = array_to_list(np.linspace(
         settings.sweep.pmt_dac_start,
         settings.sweep.pmt_dac_stop,
         settings.sweep.steps
-    ).astype(int)
+    ).astype(int))
     num_captures = settings.readout_settings.num_captures
     read_window = (
         settings.readout_settings.windows,
@@ -52,7 +53,7 @@ def run_sweep(board) -> dict:
 
     for dac_value, delay in zip(pmt_gains, gate_delays):
         set_pmt_gain(board, dac_value)
-        set_gate_delay(board, delay)
+        set_gate_delay(board, int(delay))
 
         # Read X events
         try:

@@ -17,8 +17,8 @@ def parse_args(argv):
     return parser.parse_args(argv)
 
 
-def main(argv):
-    args = parse_args(argv)
+def main():
+    args = parse_args(sys.argv[1:])
 
     board = get_board_from_args(args)
     telem = read_sensors(board)
@@ -32,4 +32,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()
