@@ -32,6 +32,9 @@ NUM_CAPTURES = 3
 # Address/channel of the DAC
 DAC_ADDRESS = 0x00
 DAC_CHANNEL = 0
+
+# Time in seconds to let the PMT settle after adjusting the gain
+PMT_SETTLE_TIME = 0.5
 # ======================================
 
 
@@ -51,6 +54,7 @@ def main():
 
     sweeper = GateDelayPmtDacSweep(board, DELAY_VALUES, DAC_VALUES, NUM_CAPTURES)
     sweeper.configure_dac(DAC_ADDRESS, DAC_CHANNEL)
+    sweeper.set_pmt_settling_time(PMT_SETTLE_TIME)
     sweep_data = sweeper.run()
     output = {
         'dac': DAC_VALUES,

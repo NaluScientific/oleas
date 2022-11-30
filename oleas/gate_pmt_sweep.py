@@ -1,4 +1,5 @@
 import logging
+import time
 
 import numpy as np
 
@@ -34,6 +35,8 @@ class GateDelayPmtDacSweep(NdSweep):
         self._attempts = 5
         self._num_captures = num_captures
 
+        self._pmt_settle_time: float = 0
+
         self._dac_address = 0
         self._dac_channel = 0
 
@@ -41,6 +44,14 @@ class GateDelayPmtDacSweep(NdSweep):
         """Set the DAC device being used"""
         self._dac_address = address
         self._dac_channel = channel
+
+    def set_pmt_settling_time(self, t: float):
+        """Set the amount of time to let the PMT settle for after adjusting the gain
+
+        Args:
+            t (float): time in seconds
+        """
+        self._pmt_settle_time = t
 
     def run(self) -> list:
         """Run the gate delay/PMT dac sweep
@@ -104,7 +115,8 @@ class GateDelayPmtDacSweep(NdSweep):
 
     def _set_dac(self, value):
         logger.info('Setting dac to %s', value)
-        raise NotImplementedError()
+        raise NotImplementedError() # TODO
+        time.sleep(self._pmt_settle_time)
 
     def _write_control_register(self, name, value):
         ControlRegisters(self._board).write(name, value)
