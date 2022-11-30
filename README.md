@@ -11,7 +11,7 @@ $ git clone http://gitlab.naluscientific.com/nalusoft/prototypes/oleas-readout.g
 
 Next, install the package as editable. You MUST include the `-e` flag to edit the sweep parameters!
 ```
-$ (my-env) pip install -e oleas-readout
+(my-env) $ pip install -e oleas-readout
 ```
 
 After installing the package you will have access to two new commands:
@@ -23,7 +23,7 @@ The `oleas_sweep` script sweeps the gate delay and captures events at each point
 
 The sweep is run using the following command:
 ```
-$ oleas_sweep -s BOARD_SERIAL_NUMBER -o OUTPUT_FILE
+(my-env) $ oleas_sweep -s BOARD_SERIAL_NUMBER -o OUTPUT_FILE
 ```
 
 - `BOARD_SERIAL_NUMBER` is the FTDI serial number of the board.
