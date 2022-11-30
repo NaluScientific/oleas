@@ -8,4 +8,5 @@ class BoardStartupError(Exception):
     pass
 
 
-class SweepConfigError
+class SensorError(Exception):
+    pass

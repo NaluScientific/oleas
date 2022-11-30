@@ -8,7 +8,8 @@ from naludaq.communication import ControlRegisters
 from oleas.capture import get_events
 from oleas.config import settings
 from oleas.dac7578 import DAC7578
-from oleas.exceptions import DataCaptureError
+from oleas.exceptions import DataCaptureError, SensorError
+from oleas.telemetry import read_sensors
 
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def run_sweep(board) -> dict:
     """Run a sweep over the gate delay and PMT gain.
-    Uses dynaconf settings
+    Uses dynaconf settings.
 
     Args:
         board (Board): the board object.
@@ -45,19 +46,30 @@ def run_sweep(board) -> dict:
     output = {
         'pmt_gains': pmt_gains,
         'gate_delays': gate_delays,
-        'data': []
+        'data': [],
+        'sensors': [],
     }
 
     for dac_value, delay in zip(pmt_gains, gate_delays):
         set_pmt_gain(board, dac_value)
         set_gate_delay(board, delay)
 
+        # Read X events
         try:
             data = get_events(board, num_captures, read_window=read_window)
+            output['data'].append(data)
         except DataCaptureError:
-            logger.error('Failed to capture data on (dac_value=%s, delay=%s)', dac_value, delay)
+            logger.error('Failed to capture data for (dac_value=%s, delay=%s)', dac_value, delay)
             raise
-        output['data'].append(data)
+
+        # Read all sensors
+        sensors = {}
+        try:
+            sensors = read_sensors(board)
+        except SensorError:
+            logger.error('Failed to read sensors for (dac_value=%s, delay=%s)', dac_value, delay)
+            pass
+        output['sensors'].append(sensors)
 
     return output
 

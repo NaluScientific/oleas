@@ -1,4 +1,4 @@
 
 
-def read_sensors() -> dict:
+def read_sensors(board) -> dict:
     return {}
