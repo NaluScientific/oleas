@@ -11,8 +11,8 @@ setup(
     ],
     entry_points = {
         'console_scripts': [
-            'read_sensors=oleas.scripts.read_sensors:main',
-            'sweep=oleas.scripts.sweep:main',
+            'oleas_sensors=oleas.scripts.read_sensors:main',
+            'oleas_sweep=oleas.scripts.sweep:main',
         ],
     },
     packages=setuptools.find_packages(),
