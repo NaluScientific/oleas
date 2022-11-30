@@ -1,14 +1,17 @@
-from dataclasses import dataclass
 import logging
 
 import numpy as np
 
 from naludaq.communication import ControlRegisters
+from naludaq.daq import DebugDaq
+from naludaq.controllers import (
+    get_board_controller,
+)
+from naludaq.tools.waiter import EventWaiter
 
-from oleas.capture import get_events
-from oleas.config import settings
-from oleas.dac7578 import DAC7578
+import oleas.helpers as helpers
 from oleas.exceptions import DataCaptureError, SensorError
+from oleas.nd_sweep import NdSweep
 from oleas.telemetry import read_sensors
 
 
@@ -16,84 +19,88 @@ logger = logging.getLogger(__name__)
 
 
 
-def run_sweep(board) -> dict:
-    """Run a sweep over the gate delay and PMT gain.
-    Uses dynaconf settings.
+class GateDelayPmtDacSweep(NdSweep):
 
-    Args:
-        board (Board): the board object.
+    def __init__(
+            self,
+            board,
+            delay: np.ndarray,
+            dac: np.ndarray,
+            num_captures=10,
+        ):
+        super().__init__([delay, dac])
+        self._board = board
+        self._daq: DebugDaq = None
+        self._attempts = 5
+        self._num_captures = num_captures
 
-    Returns:
-        dict: the sweep data in a dict object.
-    """
-    array_to_list = lambda arr: [x.item() for x in arr]
-    gate_delays = array_to_list(np.linspace(
-        settings.sweep.gate_delay_start,
-        settings.sweep.gate_delay_stop,
-        settings.sweep.steps
-    ).astype(int))
-    pmt_gains = array_to_list(np.linspace(
-        settings.sweep.pmt_dac_start,
-        settings.sweep.pmt_dac_stop,
-        settings.sweep.steps
-    ).astype(int))
-    num_captures = settings.readout_settings.num_captures
-    read_window = (
-        settings.readout_settings.windows,
-        settings.readout_settings.lookback,
-        settings.readout_settings.write_after_trig,
-    )
+        self._dac_address = 0
+        self._dac_channel = 0
 
-    output = {
-        'pmt_gains': pmt_gains,
-        'gate_delays': gate_delays,
-        'data': [],
-        'sensors': [],
-    }
+    def configure_dac(self, address: int, channel: int):
+        """Set the DAC device being used"""
+        self._dac_address = address
+        self._dac_channel = channel
 
-    for dac_value, delay in zip(pmt_gains, gate_delays):
-        set_pmt_gain(board, dac_value)
-        set_gate_delay(board, int(delay))
+    def run(self) -> list:
+        """Run the gate delay/PMT dac sweep
 
-        # Read X events
-        try:
-            data = get_events(board, num_captures, read_window=read_window)
-            output['data'].append(data)
-        except DataCaptureError:
-            logger.error('Failed to capture data for (dac_value=%s, delay=%s)', dac_value, delay)
-            raise
+        Returns:
+            list: _description_
+        """
+        board = self._board
+        with helpers.readout(board) as daq:
+            self._daq = daq
+            return super().run()
 
-        # Read all sensors
-        sensors = {}
-        try:
-            sensors = read_sensors(board)
-        except SensorError:
-            logger.error('Failed to read sensors for (dac_value=%s, delay=%s)', dac_value, delay)
-            pass
-        output['sensors'].append(sensors)
+    def _set_axis_value(self, axis: int, value: int, index: int):
+        super()._set_axis_value(axis, value, index)
 
-    return output
+        if axis == 0:
+            self._set_delay(value)
+        elif axis == 1:
+            self._set_dac(value)
 
+    def _run_for_point(self) -> list[dict]:
+        """Capture events at the current (delay, dac) coordinate
 
-def set_gate_delay(board, delay: int):
-    """Set the gate delay
-    """
-    _write_control_register(board, 'oleas_delay_a', delay) # TODO: what is this???
-    _write_control_register(board, 'oleas_delay_b', delay)
+        Returns:
+            list[dict]: list of events
+        """
+        bc = get_board_controller(self._board)
+        buffer = self._daq.output_buffer
+        num_captures = self._num_captures
+        attempts = self._attempts
+        output = []
 
+        # Send triggers first so they arrive faster
+        for _ in range(num_captures):
+            bc.toggle_trigger()
 
-def set_pmt_gain(board, dac_counts: int):
-    """Set the PMT gain by updating the DAC
+        # Read out events
+        for _ in range(num_captures):
+            for _ in range(attempts):
+                try:
+                    waiter = EventWaiter(buffer, amount=1, timeout=0.01, interval=0.001)
+                    waiter.start(blocking=True)
+                    output.append(buffer.popleft())
+                except (TimeoutError, IndexError):
+                    logger.info('Failed to get event, trying again...')
+                    bc.toggle_trigger()
+                    continue
+                else:
+                    break
+            else:
+                logger.error('Maximum number of attempts reached. Aborting.')
+                raise DataCaptureError('Maximum number of attempts reached')
 
-    Args:
-        board (Board): board object
-        dac_counts (int): new DAC value
-    """
-    address = settings.pmt_dac.address
-    channel = settings.pmt_dac.channel
-    dac = DAC7578(board, address)
-    dac.set_dacs({channel: dac_counts})
+        return output
 
+    def _set_delay(self, value):
+        self._write_control_register('oleas_delay_a', value)
 
-def _write_control_register(board, name: str, value: int):
-    ControlRegisters(board).write(name, value)
+    def _set_dac(self, value):
+        raise NotImplementedError()
+
+    def _write_control_register(self, name, value):
+        ControlRegisters(self._board).write(name, value)
