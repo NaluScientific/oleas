@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import logging
-import time
 
 import numpy as np
 
@@ -15,13 +14,14 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class GatedPmtSweepConfig:
+    """Convenient dataclass for bundling together all the sweep parameters
+    """
     pmt_dac_values: list[int]
     gate_delay_values: list[int]
     read_window: tuple
     pmt_dac_addr: int
     pmt_dac_channel: int
     num_captures: int
-
 
 
 def run_sweep(board, config: GatedPmtSweepConfig) -> dict:
@@ -53,7 +53,11 @@ def run_sweep(board, config: GatedPmtSweepConfig) -> dict:
         for j, delay in enumerate(gate_delay_values):
             set_gate_delay(board, delay)
 
-            data = get_events(board, num_captures, read_window=read_window)
+            try:
+                data = get_events(board, num_captures, read_window=read_window)
+            except DataCaptureError:
+                logger.error('Failed to capture data on (dac_value=%s, delay=%s)', dac_value, delay)
+                raise
             output['data'][i * len(gate_delay_values) + j] = data
 
     return output
@@ -62,7 +66,7 @@ def run_sweep(board, config: GatedPmtSweepConfig) -> dict:
 def set_gate_delay(board, delay: int):
     """Set the gate delay
     """
-    _write_control_register(board, 'oleas_delay_a', delay)
+    _write_control_register(board, 'oleas_delay_a', delay) # TODO: what is this???
     _write_control_register(board, 'oleas_delay_b', delay)
 
 
@@ -76,7 +80,7 @@ def set_pmt_gain(board, addr: int, channel: int, dac_counts: int):
         dac_counts (int): new DAC value
     """
     dac = DAC7578(board, addr)
-    dac.set_dacs({channel: dac_counts})
+    dac.set_dacs({channel: dac_counts}) # TODO: need address and channel!
 
 
 def _write_control_register(board, name: str, value: int):
