@@ -42,6 +42,7 @@ class NdSweep(abc.ABC):
             list: a list of a list of an etc. containing the values generated at
                 each point. The output is ordered according to the axes given.
         """
+        self._reset_current_point()
         output = self._recursive_run(axis=0)
         return output
 
