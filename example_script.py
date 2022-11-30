@@ -21,10 +21,10 @@ logger = logging.getLogger(__name__)
 
 # ======================================
 # array of gate delay values
-DELAY_VALUES = np.array([])
+DELAY_VALUES = np.arange(0, 1000, 10)
 
 # array of pmt dac values
-DAC_VALUES = np.array([])
+DAC_VALUES = np.arange(0, 4096, 100)
 
 # number of events per (delay, dac) pair
 NUM_CAPTURES = 3
