@@ -49,6 +49,7 @@ class GateDelayPmtDacSweep(NdSweep):
             list: _description_
         """
         board = self._board
+        logger.info('Running sweep')
         with helpers.readout(board) as daq:
             self._daq = daq
             return super().run()
@@ -67,6 +68,7 @@ class GateDelayPmtDacSweep(NdSweep):
         Returns:
             list[dict]: list of events
         """
+        logger.info('Capturing for next point %s', self.current_point)
         bc = get_board_controller(self._board)
         buffer = self._daq.output_buffer
         num_captures = self._num_captures
@@ -97,9 +99,11 @@ class GateDelayPmtDacSweep(NdSweep):
         return output
 
     def _set_delay(self, value):
-        self._write_control_register('oleas_delay_a', value)
+        logger.info('Setting delay to %s', value)
+        self._write_control_register('oleas_delay_a', int(value))
 
     def _set_dac(self, value):
+        logger.info('Setting dac to %s', value)
         raise NotImplementedError()
 
     def _write_control_register(self, name, value):

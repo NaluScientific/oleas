@@ -94,16 +94,18 @@ def readout(board, read_window: tuple=None) -> DebugDaq:
         rc = get_readout_controller(board)
         rc.set_read_window(*read_window)
 
-    daq = DebugDaq()
-    daq.start_capture()
-    bc = get_board_controller(board)
-    bc.start_readout('ext')
+    logger.info('Starting readout')
 
+    daq = DebugDaq(board)
+    bc = get_board_controller(board)
+    daq.start_capture()
+    bc.start_readout('ext')
     try:
         yield daq
     except:
         raise
     finally:
+        logger.info('Stopping readout')
         bc = get_board_controller(board)
         bc.stop_readout()
         daq.stop_capture()
