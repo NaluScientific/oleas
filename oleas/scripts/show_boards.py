@@ -14,6 +14,13 @@ def main():
         print('Cannot show devices. Is FTDI installed?')
         sys.exit(1)
 
+    if len(devices) == 0:
+        print('No devices found')
+    else:
+        msg = f'Found {len(devices)} device{"" if len(devices) == 1 else "s"}'
+        print(msg)
+        print('-' * len(msg))
+
     for index, device_dict in devices.items():
         print(f'Device {index}')
         print(f'    Serial Number: {device_dict["serial"]}')
