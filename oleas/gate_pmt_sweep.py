@@ -17,7 +17,8 @@ from oleas.telemetry import read_sensors
 
 
 logger = logging.getLogger(__name__)
-
+EVENT_TIMEOUT = 0.5 # seconds
+EVENT_POLLING_INTERVAL = 0.001 # seconds
 
 
 class GateDelayPmtDacSweep(NdSweep):
@@ -91,7 +92,7 @@ class GateDelayPmtDacSweep(NdSweep):
 
             for _ in range(attempts):
                 try:
-                    waiter = EventWaiter(buffer, amount=1, timeout=0.5, interval=0.001)
+                    waiter = EventWaiter(buffer, amount=1, timeout=EVENT_TIMEOUT, interval=EVENT_POLLING_INTERVAL)
                     waiter.start(blocking=True)
                     output.append(buffer.popleft())
                 except (TimeoutError, IndexError):
