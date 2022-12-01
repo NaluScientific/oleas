@@ -12,6 +12,8 @@ from naludaq.tools.waiter import EventWaiter
 
 import oleas.helpers as helpers
 from oleas.exceptions import DataCaptureError, SensorError
+from oleas.mcp4725 import Mcp4725
+from oleas.mcp4728 import Mcp4728
 from oleas.nd_sweep import NdSweep
 from oleas.telemetry import read_sensors
 
@@ -38,14 +40,6 @@ class GateDelayPmtDacSweep(NdSweep):
 
         self._pmt_settle_time: float = 0
         self._read_window = None
-
-        self._dac_address = 0
-        self._dac_channel = 0
-
-    def configure_dac(self, address: int, channel: int):
-        """Set the DAC device being used"""
-        self._dac_address = address
-        self._dac_channel = channel
 
     def set_pmt_settling_time(self, t: float):
         """Set the amount of time to let the PMT settle for after adjusting the gain
@@ -113,7 +107,13 @@ class GateDelayPmtDacSweep(NdSweep):
 
     def _set_dac(self, value):
         logger.info('Setting dac to %s', value)
-        raise NotImplementedError() # TODO
+        Mcp4725(self._board).set_value(value)
+        # Mcp4728(self._board).set_normalized_value(
+        #     channel=0,
+        #     value=value,
+        #     vref=0,
+        #     gain=1
+        # )
         time.sleep(self._pmt_settle_time)
 
     def _write_control_register(self, name, value):
