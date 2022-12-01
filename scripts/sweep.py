@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 # array of gate delay values
 DELAY_VALUES = np.arange(0, 1000, 100)
 
-# array of pmt dac values
-DAC_VALUES = np.arange(0, 1000, 200)
+# array of normalized dac values
+DAC_VALUES = np.linspace(0.0, 1.0, 10)
 
 # number of events per (delay, dac) pair
 NUM_CAPTURES = 3

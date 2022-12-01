@@ -66,7 +66,10 @@ class GateDelayPmtDacSweep(NdSweep):
         """
         self._pmt_settle_time = t
 
-    def set_read_window(self, read_window: tuple):
+    def set_read_window(self, read_window: dict):
+        """Set readwindow. Needs to be a dict containing 'windows', 'lookback', and
+        'write_after_trig'.
+        """
         self._read_window = read_window
 
     def run(self) -> list:
@@ -124,13 +127,13 @@ class GateDelayPmtDacSweep(NdSweep):
 
     def _set_dac(self, value):
         logger.info('Setting dac to %s', value)
-        Mcp4725(self._board).set_value(value)
-        # Mcp4728(self._board).set_normalized_value(
-        #     channel=self._dac_channel,
-        #     value=value,
-        #     vref=self._dac_vref,
-        #     gain=self._dac_gain,
-        # )
+        # Mcp4725(self._board).set_normalized_value(value)
+        Mcp4728(self._board).set_normalized_value(
+            channel=self._dac_channel,
+            value=value,
+            vref=self._dac_vref,
+            gain=self._dac_gain,
+        )
         time.sleep(self._pmt_settle_time)
 
     def _write_control_register(self, name, value):
