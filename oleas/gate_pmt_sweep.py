@@ -85,15 +85,13 @@ class GateDelayPmtDacSweep(NdSweep):
         attempts = self._attempts
         output = []
 
-        # Send triggers first so they arrive faster
+        # Read out events
         for _ in range(num_captures):
             bc.toggle_trigger()
 
-        # Read out events
-        for _ in range(num_captures):
             for _ in range(attempts):
                 try:
-                    waiter = EventWaiter(buffer, amount=1, timeout=0.01, interval=0.001)
+                    waiter = EventWaiter(buffer, amount=1, timeout=0.5, interval=0.001)
                     waiter.start(blocking=True)
                     output.append(buffer.popleft())
                 except (TimeoutError, IndexError):
