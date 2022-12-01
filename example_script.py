@@ -30,14 +30,19 @@ DAC_VALUES = np.arange(0, 1000, 200)
 NUM_CAPTURES = 3
 
 # Address/channel of the DAC
-DAC_ADDRESS = 0x00
 DAC_CHANNEL = 0
+DAC_VREF = 0
+DAC_GAIN = 1
 
 # Time in seconds to let the PMT settle after adjusting the gain
 PMT_SETTLE_TIME = 0.5
 
 # The window to read as (windows, lookback, write after trig)
-READ_WINDOW = (8, 16, 16)
+READ_WINDOW = {
+    'windows': 8,
+    'lookback': 16,
+    'write_after_trig': 16,
+}
 # ======================================
 
 
@@ -57,7 +62,7 @@ def main():
     # Set up the sweep controller
     sweeper = GateDelayPmtDacSweep(board, DELAY_VALUES, DAC_VALUES, NUM_CAPTURES)
     sweeper.set_read_window(READ_WINDOW)
-    sweeper.configure_dac(DAC_ADDRESS, DAC_CHANNEL)
+    sweeper.configure_dac(DAC_CHANNEL, DAC_VREF, DAC_GAIN)
     sweeper.set_pmt_settling_time(PMT_SETTLE_TIME)
 
     # Run the sweep

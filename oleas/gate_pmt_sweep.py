@@ -41,6 +41,23 @@ class GateDelayPmtDacSweep(NdSweep):
         self._pmt_settle_time: float = 0
         self._read_window = None
 
+        # configuration for the MCP4728
+        self._dac_channel = 0
+        self._dac_vref = 0
+        self._dac_gain = 1
+
+    def configure_dac(self, channel: int, vref: int, gain: int):
+        """Set the MCP4728 DAC configuration to use.
+
+        Args:
+            channel (int): the channel number (0-4)
+            vref (int): 0 (VDD) or 1 (internal 2.048 V)
+            gain (int): 1 (output 0.0 to 2.048 V) or 2 (output 0.0 to 4.096 V).
+        """
+        self._dac_channel = channel
+        self._dac_vref = vref
+        self._dac_gain = gain
+
     def set_pmt_settling_time(self, t: float):
         """Set the amount of time to let the PMT settle for after adjusting the gain
 
@@ -109,10 +126,10 @@ class GateDelayPmtDacSweep(NdSweep):
         logger.info('Setting dac to %s', value)
         Mcp4725(self._board).set_value(value)
         # Mcp4728(self._board).set_normalized_value(
-        #     channel=0,
+        #     channel=self._dac_channel,
         #     value=value,
-        #     vref=0,
-        #     gain=1
+        #     vref=self._dac_vref,
+        #     gain=self._dac_gain,
         # )
         time.sleep(self._pmt_settle_time)
 
