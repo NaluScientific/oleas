@@ -77,7 +77,7 @@ def get_board_from_args(args) -> Board:
 
 
 @contextmanager
-def readout(board, read_window: tuple) -> DebugDaq:
+def readout(board, read_window: dict) -> DebugDaq:
     """Start a readout/capture for the board.
 
     This function is a context manager. When used in a `with` block,
@@ -95,7 +95,7 @@ def readout(board, read_window: tuple) -> DebugDaq:
         read_window (tuple): read window as (windows, lookback, write after trigger)
     """
     rc = get_readout_controller(board)
-    rc.set_read_window(*read_window)
+    rc.set_read_window(**read_window)
 
     logger.info('Starting readout')
 
