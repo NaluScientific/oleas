@@ -22,7 +22,7 @@ class Mcp4728:
         """
         if not 0.0 <= value <= 1.0:
             raise ValueError('Value must be 0.0 to 1.0')
-        self.set_value(channel, int(value * 4095.0), vref, gain)
+        self.set_value(channel, round(value * 4095.0), vref, gain)
 
     def set_value(self, channel: int, value: int, vref=0, gain=1):
         """Set 12-bit value (0 - 4095)

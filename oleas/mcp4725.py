@@ -12,7 +12,7 @@ class Mcp4725:
         """Set normalized value (0.0 - 1.0)"""
         if not 0.0 <= value <= 1.0:
             raise ValueError('Value must be 0.0 to 1.0')
-        self.set_value(int(value * 4095.0))
+        self.set_value(round(value * 4095.0))
 
     def set_value(self, value: int):
         """Set 12-bit value (0 - 4095)"""
