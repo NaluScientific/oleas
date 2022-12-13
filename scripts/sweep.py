@@ -1,27 +1,8 @@
 """Script for reading sensors from board and printing result or saving to file
 """
-import argparse
-import logging
-from pathlib import Path
-import sys
-
-import numpy as np
-
-from oleas.helpers import get_board_from_args
-from oleas.gate_pmt_sweep import GateDelayPmtDacSweep
-from oleas.helpers import (
-    is_valid_output_file,
-    save_pickle,
-    setup_logger_output,
-    get_board_from_args,
-    load_pedestals,
-    correct_pedestals,
-)
-
-
-logger = logging.getLogger(__name__)
-
-# ======================================
+# =====================================================================
+#                             CONFIGURATION
+# =====================================================================
 # array of gate delay values
 DELAY_VALUES = np.arange(0, 1000, 100)
 
@@ -45,7 +26,29 @@ READ_WINDOW = {
     'lookback': 16,
     'write_after_trig': 16,
 }
-# ======================================
+# ==================================================================
+
+
+import argparse
+import logging
+from pathlib import Path
+import sys
+
+import numpy as np
+
+from oleas.helpers import get_board_from_args
+from oleas.gate_pmt_sweep import GateDelayPmtDacSweep
+from oleas.helpers import (
+    is_valid_output_file,
+    save_pickle,
+    setup_logger_output,
+    get_board_from_args,
+    load_pedestals,
+    correct_pedestals,
+)
+
+
+logger = logging.getLogger(__name__)
 
 
 def main():
