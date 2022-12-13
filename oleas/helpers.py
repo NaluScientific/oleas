@@ -1,13 +1,15 @@
 from contextlib import contextmanager
 import logging
 import pickle
+import gzip
 
-from naludaq.board import Board
+from naludaq.board import Board, startup_board
 from naludaq.daq import DebugDaq
 from naludaq.controllers import (
     get_board_controller,
     get_readout_controller,
 )
+from naludaq.tools.pedestals.pedestals_correcter import PedestalsCorrecter
 
 
 logger = logging.getLogger(__name__)
@@ -61,8 +63,15 @@ def get_board(serial: str, model: str='aodsoc_aods', baud=None):
     return board
 
 
-def get_board_from_args(args) -> Board:
-    """Get board from command line arguments"""
+def get_board_from_args(args, startup: bool=False) -> Board:
+    """Get board from command line arguments
+
+    Args:
+        startup (bool): whether to start up the board
+
+    Returns:
+        Board: the board with a connection, and optionally started up.
+    """
     model = args.model
     baud = args.baudrate
     serial = args.serial
@@ -72,6 +81,9 @@ def get_board_from_args(args) -> Board:
         board = get_board(serial, model, baud)
     except Exception as e:
         raise e
+
+    if startup:
+        startup_board(board)
 
     return board
 
@@ -112,3 +124,43 @@ def readout(board, read_window: dict) -> DebugDaq:
         bc = get_board_controller(board)
         bc.stop_readout()
         daq.stop_capture()
+
+
+def load_pedestals(path) -> dict:
+    """Load pedestals from disk.
+
+    Args:
+        path (Path | str): path to pedestals file
+
+    Returns:
+        dict: pedestals dict
+    """
+    with gzip.GzipFile(path, 'rb') as f:
+        return pickle.load(f)
+
+
+def correct_pedestals(data: list[list[list[dict]]], params: dict, pedestals: dict) -> list[list[list[dict]]]:
+    """Apply pedestals correction to the sweep data.
+
+    Args:
+        data (list[list[list[dict]]]): parsed sweep data
+        params (dict): board params
+        pedestals (dict): pedestals to use
+
+    Returns:
+        list[list[list[dict]]]: the pedestals corrected sweep data. Returns [] if there was an error.
+    """
+    correct = PedestalsCorrecter(params, pedestals).run
+    try:
+        corrected_data = [
+            [
+                [
+                    correct(event, correct_in_place=False)
+                    for event in dac
+                ] for dac in delay
+            ] for delay in data
+        ]
+    except Exception as e:
+        logger.error('Failed to correct pedestals: %s', e)
+        corrected_data = []
+    return corrected_data

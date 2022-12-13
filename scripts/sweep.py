@@ -14,6 +14,8 @@ from oleas.helpers import (
     save_pickle,
     setup_logger_output,
     get_board_from_args,
+    load_pedestals,
+    correct_pedestals,
 )
 
 
@@ -56,8 +58,16 @@ def main():
         print(f'Output file is not valid: {args.output}')
         sys.exit(1)
 
+    logger.debug('Loading pedestals from file: %s', args.pedestals)
+    try:
+        pedestals = load_pedestals(args.pedestals)
+    except:
+        print(f'Invalid pedestals file')
+        sys.exit(1)
+
     # ==========================================
-    board = get_board_from_args(args)
+    board = get_board_from_args(args, startup=True)
+    board.pedestals = pedestals
 
     # Set up the sweep controller
     sweeper = GateDelayPmtDacSweep(board, DELAY_VALUES, DAC_VALUES, NUM_CAPTURES)
@@ -73,6 +83,7 @@ def main():
         'dac': DAC_VALUES,
         'delay': DELAY_VALUES,
         'data': sweep_data,
+        'corrected_data': correct_pedestals(sweep_data, board.params, board.pedestals),
     }
     save_pickle(args.output, output)
 
@@ -84,6 +95,7 @@ def parse_args(argv):
     # required
     parser.add_argument('--output', '-o', type=Path, required=True, help='Output file (pickle)')
     parser.add_argument('--serial', '-s', type=str, required=True, help='FTDI serial number of board')
+    parser.add_argument('--pedestals', '-p', type=Path, required=True, help='Path to pedestals file')
 
     # optional
     parser.add_argument('--model', '-m', type=str, default=default_model, help=f'Board model. Defaults to "{default_model}"')
