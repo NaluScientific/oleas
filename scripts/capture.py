@@ -103,6 +103,7 @@ def main():
     # ==========================================
     board = get_board_from_args(args, startup=True)
     board.pedestals = pedestals
+    ControlRegisters(board).write('i2c_bus_sel', 1)
 
     # ==========================================
     ControlRegisters(board).write('oleas_length_a', GATE_LENGTH)

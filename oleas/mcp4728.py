@@ -1,7 +1,7 @@
 from naludaq.devices.i2c_device import I2CDevice
 
 
-DEFAULT_ADDRESS = 0b1100010
+DEFAULT_ADDRESS = 0xC8 >> 1
 SINGLE_WRITE_COMMAND = 0b01011000
 
 
