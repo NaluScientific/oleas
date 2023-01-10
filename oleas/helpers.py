@@ -164,3 +164,28 @@ def correct_pedestals(data: list[list[list[dict]]], params: dict, pedestals: dic
         logger.error('Failed to correct pedestals: %s', e)
         corrected_data = []
     return corrected_data
+
+
+def correct_pedestals_for_capture(data: list[list[dict]], params: dict, pedestals: dict) -> list[list[dict]]:
+    """Apply pedestals correction to the capture data.
+
+    Args:
+        data (list[list[dict]]): parsed capture data
+        params (dict): board params
+        pedestals (dict): pedestals to use
+
+    Returns:
+        list[list[dict]]: the pedestals corrected capture data. Returns [] if there was an error.
+    """
+    correct = PedestalsCorrecter(params, pedestals).run
+    try:
+        corrected_data = [
+            [
+                correct(event, correct_in_place=False)
+                for event in step
+            ] for step in data
+        ]
+    except Exception as e:
+        logger.error('Failed to correct pedestals: %s', e)
+        corrected_data = []
+    return corrected_data
