@@ -28,6 +28,7 @@ from naludaq.daq import DebugDaq
 from naludaq.controllers import (
     get_board_controller,
     get_readout_controller,
+    get_gainstage_controller,
 )
 from naludaq.tools.waiter import EventWaiter
 
@@ -106,6 +107,10 @@ def main():
     board = get_board_from_args(args, startup=True)
     board.pedestals = pedestals
     ControlRegisters(board).write('i2c_bus_sel', 1)
+    gc = get_gainstage_controller(board)
+    gc.ch0_external_input()
+    gc.ch1_8x_ch0()
+    gc.ch2_8x_ch1()
 
     # ==========================================
     ControlRegisters(board).write('oleas_length_a', GATE_LENGTH)

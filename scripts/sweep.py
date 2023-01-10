@@ -8,6 +8,7 @@ import sys
 import numpy as np
 
 from naludaq.communication import ControlRegisters
+from naludaq.controllers import get_gainstage_controller
 
 from oleas.helpers import get_board_from_args
 from oleas.gate_pmt_sweep import GateDelayPmtDacSweep
@@ -73,6 +74,10 @@ def main():
     board = get_board_from_args(args, startup=True)
     board.pedestals = pedestals
     ControlRegisters(board).write('i2c_bus_sel', 1)
+    gc = get_gainstage_controller(board)
+    gc.ch0_external_input()
+    gc.ch1_8x_ch0()
+    gc.ch2_8x_ch1()
 
     # Set up the sweep controller
     sweeper = GateDelayPmtDacSweep(board, DELAY_VALUES, DAC_VALUES, NUM_CAPTURES)
