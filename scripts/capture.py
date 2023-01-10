@@ -10,6 +10,7 @@ import time
 import numpy as np
 
 from oleas.helpers import (
+    correct_pedestals_for_capture,
     readout,
     get_board_from_args,
     is_valid_output_file,
@@ -34,7 +35,7 @@ from naludaq.tools.waiter import EventWaiter
 #                             CONFIGURATION
 # =====================================================================
 # array of gate delay values
-DELAY_VALUES = np.linspace(0, 10000, 10, endpoint=True)
+DELAY_VALUES = np.linspace(0, 10000, 3, endpoint=True)
 
 def dac_value(delay: int) -> float:
     """Function for computing the normalized DAC value as an arbitrary
@@ -89,8 +90,9 @@ def main():
         print('Iteration interval must be a positive number')
         sys.exit(1)
     # make sure output file is valid first to avoid problems that could come up later
-    if not is_valid_output_file(args.output):
-        print(f'Output file is not valid: {args.output}')
+    output_dir: Path = Path(args.output).resolve()
+    if not output_dir.exists():
+        print(f'Output directory does not exist: {output_dir}')
         sys.exit(1)
 
     logger.debug('Loading pedestals from file: %s', args.pedestals)
@@ -109,8 +111,6 @@ def main():
     ControlRegisters(board).write('oleas_length_a', GATE_LENGTH)
     get_readout_controller(board).set_read_window(**READ_WINDOW)
 
-    sweep_data: list[list[list[dict]]] = []
-    times: list[datetime] = []
     try:
         while True:
             iteration_start_time = time.time()
@@ -131,8 +131,20 @@ def main():
                 except:
                     print('Error: failed to capture data!')
                 iteration_data.append(data)
-            sweep_data.append(iteration_data)
-            times.append(timestamp)
+
+            output_file = output_dir / timestamp.strftime("%Y-%m-%dT %H-%M-%S.pkl")
+            output = {
+                'dac': DAC_VALUES,
+                'delay': DELAY_VALUES,
+                'data': iteration_data,
+                'corrected_data': correct_pedestals_for_capture(iteration_data, board.params, board.pedestals),
+                'time': timestamp,
+            }
+            try:
+                print(f'Saving output to: {output_file}')
+                save_pickle(output_file, output)
+            except:
+                print('Failed to save output file!')
 
             # wait until it's time for the next iteration
             leftover_time = args.interval - (time.time() - iteration_start_time)
@@ -141,24 +153,13 @@ def main():
         print('Interrupted')
         pass
 
-    # ==========================================
-    print('Generating output files')
-    output = {
-        'dac': DAC_VALUES,
-        'delay': DELAY_VALUES,
-        'data': sweep_data,
-        'corrected_data': correct_pedestals(sweep_data, board.params, board.pedestals),
-        'times': times,
-    }
-    save_pickle(args.output, output)
-
 
 def parse_args(argv):
     """Parse command line arguments"""
     default_model = 'aodsoc_aods'
     parser = argparse.ArgumentParser(description='Run sweep of gated PMT')
     # required
-    parser.add_argument('--output', '-o', type=Path, required=True, help='Output file (pickle)')
+    parser.add_argument('--output', '-o', type=Path, required=True, help='Output directory')
     parser.add_argument('--serial', '-s', type=str, required=True, help='FTDI serial number of board')
     parser.add_argument('--pedestals', '-p', type=Path, required=True, help='Path to pedestals file')
     parser.add_argument('--interval', '-i', type=float, required=True, help='Time interval between iterations in seconds')
