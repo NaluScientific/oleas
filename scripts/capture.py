@@ -15,6 +15,8 @@ from oleas.helpers import (
     get_board_from_args,
     is_valid_output_file,
     save_pickle,
+    select_external_i2c_bus,
+    set_default_gain_stages,
     setup_logger_output,
     get_board_from_args,
     load_pedestals,
@@ -28,6 +30,7 @@ from naludaq.daq import DebugDaq
 from naludaq.controllers import (
     get_board_controller,
     get_readout_controller,
+    get_gainstage_controller,
 )
 from naludaq.tools.waiter import EventWaiter
 
@@ -105,7 +108,8 @@ def main():
     # ==========================================
     board = get_board_from_args(args, startup=True)
     board.pedestals = pedestals
-    ControlRegisters(board).write('i2c_bus_sel', 1)
+    select_external_i2c_bus(board)
+    set_default_gain_stages(board)
 
     # ==========================================
     ControlRegisters(board).write('oleas_length_a', GATE_LENGTH)

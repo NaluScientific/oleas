@@ -4,10 +4,12 @@ import pickle
 import gzip
 
 from naludaq.board import Board, startup_board
+from naludaq.communication import ControlRegisters
 from naludaq.daq import DebugDaq
 from naludaq.controllers import (
     get_board_controller,
     get_readout_controller,
+    get_gainstage_controller,
 )
 from naludaq.tools.pedestals.pedestals_correcter import PedestalsCorrecter
 
@@ -189,3 +191,22 @@ def correct_pedestals_for_capture(data: list[list[dict]], params: dict, pedestal
         logger.error('Failed to correct pedestals: %s', e)
         corrected_data = []
     return corrected_data
+
+
+def select_external_i2c_bus(board):
+    """Set I2C communication to use the external bus."""
+    ControlRegisters(board).write('i2c_bus_sel', 1)
+
+
+def set_default_gain_stages(board):
+    """Set the gain stages on the board to the defaults:
+    - CH0: external input
+    - CH1: 8x CH0
+    - CH2: 8x CH1
+    - CH3: 8x CH2
+    """
+    gc = get_gainstage_controller(board)
+    gc.ch0_external_input()
+    gc.ch1_8x_ch0()
+    gc.ch2_8x_ch1()
+    gc.ch3_8x_ch2() # use of channel 3 isn't planned, but might come in handy
