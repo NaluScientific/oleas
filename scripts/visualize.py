@@ -28,10 +28,14 @@ def main():
                 continue
 
             last_file_plotted = latest_file
-            try:
-                plot_file(fig, latest_file)
-            except:
-                print(f"Failed to plot file: {latest_file}")
+            ATTEMPTS = 5
+            for _ in range(ATTEMPTS):
+                try:
+                    plot_file(fig, latest_file)
+                    break
+                except Exception as e:
+                    print(f"Failed to plot file: {latest_file} due to {e}")
+                    plt.pause(0.4)
 
             if not watch:
                 plt.ioff()
