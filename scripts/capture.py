@@ -38,7 +38,7 @@ from naludaq.tools.waiter import EventWaiter
 #                             CONFIGURATION
 # =====================================================================
 # array of gate delay values
-DELAY_VALUES = np.linspace(0, 10000, 3, endpoint=True)
+DELAY_VALUES = np.linspace(0, 20, 5, endpoint=True)
 
 def dac_value(delay: int) -> float:
     """Function for computing the normalized DAC value as an arbitrary
@@ -51,15 +51,27 @@ def dac_value(delay: int) -> float:
         float: normalized DAC value for controlling PMT gain (0-1)
     """
     # ramp function clamped 0-1, could be anything though
-    ramp_start = 1000
-    ramp_stop = 10_000
+    ramp_start = 0
+    ramp_stop = 40
 
     ramp_slope = 1 / (ramp_stop - ramp_start)
     dac = ramp_slope * (delay - ramp_start)
     return min(max(dac, 0), 1)
 
+# Loop Length (each increment is x2 to length)
+LOOP_LENGTH = 9
+
 # Static gate length
-GATE_LENGTH = 1000
+GATE_LENGTH_A = 40
+GATE_LENGTH_B = 40
+
+# Polarity
+POLARITY_A = 1
+POLARITY_B = 0
+
+# Delay
+DELAY_A = 0 # This delay is being varied from DELAY_VALUES
+DELAY_B = 0
 
 # Address/channel of the DAC
 DAC_CHANNEL = 0
@@ -74,9 +86,9 @@ NUM_CAPTURES = 3
 
 # The window to read as (windows, lookback, write after trig)
 READ_WINDOW = {
-    'windows': 8,
-    'lookback': 16,
-    'write_after_trig': 16,
+    'windows': 40,
+    'lookback': 40,
+    'write_after_trig': 20,
 }
 # ==================================================================
 DAC_VALUES = np.array([dac_value(x) for x in DELAY_VALUES])
@@ -112,7 +124,12 @@ def main():
     set_default_gain_stages(board)
 
     # ==========================================
-    ControlRegisters(board).write('oleas_length_a', GATE_LENGTH)
+    bc = get_board_controller(board)
+    bc.set_oleas_enabled(en_trig = 1, en_a = 1, en_b = 1)
+    bc.set_oleas_loop(LOOP_LENGTH)
+    bc.set_oleas_a(GATE_LENGTH_A, DELAY_A, POLARITY_A)
+    bc.set_oleas_b(GATE_LENGTH_B, DELAY_B, POLARITY_B)
+    
     get_readout_controller(board).set_read_window(**READ_WINDOW)
 
     try:
@@ -156,7 +173,8 @@ def main():
     except KeyboardInterrupt:
         print('Interrupted')
         pass
-
+    finally:
+        bc.set_oleas_enabled(en_trig = 0, en_a = 0, en_b = 0)
 
 def parse_args(argv):
     """Parse command line arguments"""
