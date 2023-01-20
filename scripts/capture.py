@@ -43,10 +43,8 @@ DELAY_VALUES = np.linspace(start=0, stop=20, num=NUM_POINTS, endpoint=True)
 
 # Address/channel of the DAC
 DAC_CHANNEL_VALUES = [
-    np.linspace(start=0, stop=1, num=NUM_POINTS, endpoint=True), # CHANNEL 0
-    np.linspace(start=0, stop=1, num=NUM_POINTS, endpoint=True), # CHANNEL 1
-    np.linspace(start=0, stop=1, num=NUM_POINTS, endpoint=True), # CHANNEL 2
-    np.linspace(start=0, stop=1, num=NUM_POINTS, endpoint=True), # CHANNEL 3
+    np.linspace(start=0, stop=1, num=NUM_POINTS, endpoint=True), # DAC CHANNEL 0 (Board Channel 0)
+    np.linspace(start=0, stop=0.4, num=NUM_POINTS, endpoint=True), # DAC CHANNEL 1 (Board Channel 4)
 ]
 DAC_VREF = 0
 DAC_GAIN = 1
@@ -183,6 +181,7 @@ def _set_dac(board, idx):
     logger.info('Setting dac to %s', np.array(DAC_CHANNEL_VALUES)[:, idx])
     # Mcp4725(self._board).set_normalized_value(value)
     for dac_channel, dac_value in enumerate(np.array(DAC_CHANNEL_VALUES)[:, idx]):
+        print(f"Setting dac_channel {dac_channel} to {dac_value}")
         Mcp4728(board).set_normalized_value(
         channel=dac_channel,
         value=dac_value,
