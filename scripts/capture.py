@@ -44,7 +44,7 @@ DELAY_VALUES = np.linspace(start=0, stop=20, num=NUM_POINTS, endpoint=True)
 # Address/channel of the DAC
 DAC_CHANNEL_VALUES = [
     np.linspace(start=0, stop=1, num=NUM_POINTS, endpoint=True), # DAC CHANNEL 0 (Board Channel 0)
-    np.linspace(start=0, stop=0.4, num=NUM_POINTS, endpoint=True), # DAC CHANNEL 1 (Board Channel 4)
+    np.linspace(start=0, stop=1, num=NUM_POINTS, endpoint=True), # DAC CHANNEL 1 (Board Channel 4)
 ]
 DAC_VREF = 0
 DAC_GAIN = 1
