@@ -61,7 +61,7 @@ def plot_file(fig, file: Path):
     for setting, subfig in enumerate(subfigs):
         delay = data["delay"][setting]
         dac = data["dac"]
-        subfig.suptitle(f"Delay={delay}, DAC0={dac[0][setting]:.03}, DAC1={dac[1][setting]:0.3}")
+        subfig.suptitle(f"Delay={delay}, DAC 0={dac[0][setting]:.03}, DAC 1={dac[1][setting]:0.3}")
         axs = subfig.subplots(nrows=1, ncols=3)
         for channel, ax in enumerate(axs):
             ax.set_title(f"Channels {channel}, {channel + 4}")
