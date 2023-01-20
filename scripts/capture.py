@@ -38,25 +38,18 @@ from naludaq.tools.waiter import EventWaiter
 #                             CONFIGURATION
 # =====================================================================
 # array of gate delay values
-DELAY_VALUES = np.linspace(0, 20, 5, endpoint=True)
+NUM_POINTS = 5
+DELAY_VALUES = np.linspace(start=0, stop=20, num=NUM_POINTS, endpoint=True)
 
-def dac_value(delay: int) -> float:
-    """Function for computing the normalized DAC value as an arbitrary
-    function of a gate delay value.
-
-    Args:
-        delay (int): gate delay
-
-    Returns:
-        float: normalized DAC value for controlling PMT gain (0-1)
-    """
-    # ramp function clamped 0-1, could be anything though
-    ramp_start = 0
-    ramp_stop = 40
-
-    ramp_slope = 1 / (ramp_stop - ramp_start)
-    dac = ramp_slope * (delay - ramp_start)
-    return min(max(dac, 0), 1)
+# Address/channel of the DAC
+DAC_CHANNEL_VALUES = [
+    np.linspace(start=0, stop=1, num=NUM_POINTS, endpoint=True), # CHANNEL 0
+    np.linspace(start=0, stop=1, num=NUM_POINTS, endpoint=True), # CHANNEL 1
+    np.linspace(start=0, stop=1, num=NUM_POINTS, endpoint=True), # CHANNEL 2
+    np.linspace(start=0, stop=1, num=NUM_POINTS, endpoint=True), # CHANNEL 3
+]
+DAC_VREF = 0
+DAC_GAIN = 1
 
 # Loop Length (each increment is x2 to length)
 LOOP_LENGTH = 9
@@ -73,11 +66,6 @@ POLARITY_B = 0
 DELAY_A = 0 # This delay is being varied from DELAY_VALUES
 DELAY_B = 0
 
-# Address/channel of the DAC
-DAC_CHANNEL = 0
-DAC_VREF = 0
-DAC_GAIN = 1
-
 # Time in seconds to let the PMT settle after adjusting the gain
 PMT_SETTLE_TIME = 0.5
 
@@ -91,8 +79,6 @@ READ_WINDOW = {
     'write_after_trig': 20,
 }
 # ==================================================================
-DAC_VALUES = np.array([dac_value(x) for x in DELAY_VALUES])
-
 
 logger = logging.getLogger(__name__)
 
@@ -137,10 +123,10 @@ def main():
             iteration_start_time = time.time()
             timestamp = datetime.now()
             iteration_data: list[list[dict]] = []
-            for delay, dac in zip(DELAY_VALUES, DAC_VALUES):
+            for idx, delay in enumerate(DELAY_VALUES):
                 # set delay/gain
                 ControlRegisters(board).write('oleas_delay_a', int(delay))
-                _set_dac(board, dac)
+                _set_dac(board, idx)
 
                 # read events
                 data: list[dict] = []
@@ -155,7 +141,7 @@ def main():
 
             output_file = output_dir / timestamp.strftime("%Y-%m-%dT %H-%M-%S.pkl")
             output = {
-                'dac': DAC_VALUES,
+                'dac': DAC_CHANNEL_VALUES,
                 'delay': DELAY_VALUES,
                 'data': iteration_data,
                 'corrected_data': correct_pedestals_for_capture(iteration_data, board.params, board.pedestals),
@@ -193,15 +179,22 @@ def parse_args(argv):
     return parser.parse_args(argv)
 
 
-def _set_dac(board, value):
-    logger.info('Setting dac to %s', value)
+def _set_dac(board, idx):
+    logger.info('Setting dac to %s', np.array(DAC_CHANNEL_VALUES)[:, idx])
     # Mcp4725(self._board).set_normalized_value(value)
-    Mcp4728(board).set_normalized_value(
-        channel=DAC_CHANNEL,
-        value=value,
+    for dac_channel, dac_value in enumerate(np.array(DAC_CHANNEL_VALUES)[:, idx]):
+        Mcp4728(board).set_normalized_value(
+        channel=dac_channel,
+        value=dac_value,
         vref=DAC_VREF,
         gain=DAC_GAIN,
     )
+    # Mcp4728(board).set_normalized_value(
+    #     channel=DAC_CHANNEL,
+    #     value=value,
+    #     vref=DAC_VREF,
+    #     gain=DAC_GAIN,
+    # )
     time.sleep(PMT_SETTLE_TIME)
 
 def _read_events(board, daq, amount):
