@@ -181,19 +181,12 @@ def _set_dac(board, idx):
     logger.info('Setting dac to %s', np.array(DAC_CHANNEL_VALUES)[:, idx])
     # Mcp4725(self._board).set_normalized_value(value)
     for dac_channel, dac_value in enumerate(np.array(DAC_CHANNEL_VALUES)[:, idx]):
-        print(f"Setting dac_channel {dac_channel} to {dac_value}")
         Mcp4728(board).set_normalized_value(
         channel=dac_channel,
         value=dac_value,
         vref=DAC_VREF,
         gain=DAC_GAIN,
     )
-    # Mcp4728(board).set_normalized_value(
-    #     channel=DAC_CHANNEL,
-    #     value=value,
-    #     vref=DAC_VREF,
-    #     gain=DAC_GAIN,
-    # )
     time.sleep(PMT_SETTLE_TIME)
 
 def _read_events(board, daq, amount):

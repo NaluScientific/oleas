@@ -56,7 +56,6 @@ def plot_file(fig, file: Path):
         data = pickle.load(f)
 
     NUM_SETTINGS = len(data["corrected_data"])
-    print(NUM_SETTINGS)
     subfigs = fig.subfigures(nrows=NUM_SETTINGS, ncols=1)
     for setting, subfig in enumerate(subfigs):
         delay = data["delay"][setting]
