@@ -33,7 +33,7 @@ def main():
                 try:
                     plot_file(fig, latest_file)
                     break
-                except Exception as e:
+                except BaseException as e:
                     print(f"Failed to plot file: {latest_file} due to {e}")
                     plt.pause(0.4)
 
@@ -59,10 +59,11 @@ def plot_file(fig, file: Path):
     subfigs = fig.subfigures(nrows=NUM_SETTINGS, ncols=1)
     for setting, subfig in enumerate(subfigs):
         delay = data["delay"][setting]
-        dac = data["dac"][setting]
-        subfig.suptitle(f"Delay={delay}, DAC={dac:.03}")
+        dac = data["dac"]
+        subfig.suptitle(f"Delay={delay}, DAC 0={dac[0][setting]:.03}, DAC 1={dac[1][setting]:0.3}")
         axs = subfig.subplots(nrows=1, ncols=3)
         for channel, ax in enumerate(axs):
+            ax.set_title(f"Channels {channel}, {channel + 4}")
             colors = plt.rcParams["axes.prop_cycle"].by_key()["color"][
                 channel * 2 : channel * 2 + 2
             ]
@@ -77,7 +78,7 @@ def plot_file(fig, file: Path):
                 label=f"Channel {channel + 4}",
                 color=colors[1],
             )
-            ax.set_title(f"Channels {channel}, {channel + 4}")
+            # ax.set_title(f"Channels {channel}, {channel + 4}")
 
             if setting == 0:
                 ax.legend()
