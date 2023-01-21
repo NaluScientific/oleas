@@ -6,12 +6,12 @@ First, ensure that NaluDaq and NaluConfigs are installed and up to date, and you
 
 Next, clone this repository if you don't have it locally already:
 ```
-$ git clone http://gitlab.naluscientific.com/nalusoft/prototypes/oleas-readout.git
+$ git clone https://github.com/NaluScientific/oleas.git
 ```
 
 Next, install the package as editable. You MUST include the `-e` flag to edit the sweep parameters!
 ```
-(my-env) $ pip install -e oleas-readout
+(my-env) $ pip install -e oleas
 ```
 
 ## Gated PMT Sweep (For Calibration)
