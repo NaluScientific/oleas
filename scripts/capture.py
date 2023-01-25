@@ -186,7 +186,8 @@ def _set_dac(board, idx):
         value=dac_value,
         vref=DAC_VREF,
         gain=DAC_GAIN,
-    )
+        )
+        time.sleep(0.1)
     time.sleep(PMT_SETTLE_TIME)
 
 def _read_events(board, daq, amount):
