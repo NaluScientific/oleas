@@ -22,7 +22,14 @@ def main():
     try:
         last_file_plotted = None
         while True:
-            latest_file = max(list(dir.glob("*")), key=os.path.getctime)
+            file_list = list(dir.glob("*"))
+            if len(file_list) == 0:
+                if not watch:
+                    print("Input directory is empty, exiting")
+                    break
+                plt.pause(1)
+                continue
+            latest_file = max(file_list, key=os.path.getctime)
             if latest_file == last_file_plotted:
                 plt.pause(1)  # let the window process events
                 continue
