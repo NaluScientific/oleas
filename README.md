@@ -5,21 +5,24 @@
 First, ensure that NaluDaq and NaluConfigs are installed and up to date, and you are using an environment with Python 3.9+.
 
 Next, clone this repository if you don't have it locally already:
-```
-$ git clone http://gitlab.naluscientific.com/nalusoft/prototypes/oleas-readout.git
+
+``` sh
+git clone https://github.com/NaluScientific/oleas.git
 ```
 
 Next, install the package as editable. You MUST include the `-e` flag to edit the sweep parameters!
-```
-(my-env) $ pip install -e oleas-readout
+
+``` sh
+pip install -e oleas
 ```
 
 ## Gated PMT Sweep (For Calibration)
 The `scripts/sweep.py` script runs a 2D sweep over the PMT gain and gate delay and captures events at each point.
 
 The sweep is run using the following command:
-```
-(my-env) $ python scripts/sweep.py -s BOARD_SERIAL_NUMBER -o OUTPUT_FILE
+
+``` sh
+python scripts/sweep.py -s BOARD_SERIAL_NUMBER -o OUTPUT_FILE
 ```
 
 - `BOARD_SERIAL_NUMBER` is the FTDI serial number of the board. If you are unsure of the serial number, you can use the `scripts/show_boards.py` script to fetch the serial numbers of boards currently connected to your computer.
