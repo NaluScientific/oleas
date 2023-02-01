@@ -204,9 +204,14 @@ def set_default_gain_stages(board):
     - CH1: 8x CH0
     - CH2: 8x CH1
     - CH3: 8x CH2
+    - CH4: external input
+    - CH5: 8x CH4
+    - CH6: 8x CH5
+    - CH7: 8x CH6
     """
-    gc = get_gainstage_controller(board)
-    gc.ch0_external_input()
-    gc.ch1_8x_ch0()
-    gc.ch2_8x_ch1()
-    gc.ch3_8x_ch2() # use of channel 3 isn't planned, but might come in handy
+    for i in range(2):
+        gc = get_gainstage_controller(board, chip_number=i)
+        gc.ch0_external_input()
+        gc.ch1_8x_ch0()
+        gc.ch2_8x_ch1()
+        gc.ch3_8x_ch2() # use of channel 3 isn't planned, but might come in handy
