@@ -196,7 +196,6 @@ def _read_events(board, daq, amount):
     output = []
 
     for _ in range(amount):
-        bc.toggle_trigger()
 
         for _ in range(5):
             try:
@@ -205,7 +204,6 @@ def _read_events(board, daq, amount):
                 output.append(buffer.popleft())
             except (TimeoutError, IndexError):
                 logger.info('Failed to get event, trying again...')
-                bc.toggle_trigger()
                 continue
             else:
                 break
