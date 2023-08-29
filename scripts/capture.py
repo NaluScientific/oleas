@@ -94,6 +94,12 @@ def main():
         print(f'Output directory does not exist: {output_dir}')
         sys.exit(1)
 
+    if args.config:
+        config_path: Path = Path(args.output).resolve()
+        if not config_path.exists():
+            print(f'Config file does not exist: {config_path}')
+            sys.exit(1)
+
     logger.debug('Loading pedestals from file: %s', args.pedestals)
     try:
         pedestals = load_pedestals(args.pedestals)
@@ -173,6 +179,7 @@ def parse_args(argv):
     # optional
     parser.add_argument('--model', '-m', type=str, default=default_model, help=f'Board model. Defaults to "{default_model}"')
     parser.add_argument('--baudrate', '-b', type=int, default=None, help='Baud rate. Defaults to fastest available.')
+    parser.add_argument('--config', '-c', type=Path, default=None, help='Configuration file to startup the board')
     parser.add_argument('--debug', '-d', action='store_true', help='Show debug messages')
     return parser.parse_args(argv)
 

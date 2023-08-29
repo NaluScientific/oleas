@@ -48,18 +48,21 @@ def setup_logger_output():
     return logger
 
 
-def get_board(serial: str, model: str='aodsoc_aods', baud=None):
+def get_board(serial: str, model: str='aodsoc_aods', baud=None, config: str=None):
     """Connect to a board
 
     Args:
         serial (str): the board serial number
         model (str): board model
         baud (int): baud rate, or None to use fastest available.
+        config (str): path to config file
 
     Returns:
         _type_: _description_
     """
     board = Board(model)
+    if config:
+        board.load_registers(config)
     baud = baud or max(board.params['possible_bauds'].keys())
     board.get_ftdi_connection(serial_number=serial, baud=baud)
     return board
@@ -77,10 +80,11 @@ def get_board_from_args(args, startup: bool=False) -> Board:
     model = args.model
     baud = args.baudrate
     serial = args.serial
-    logger.debug('Board arguments: model=%s, baud=%s, serial=%s', model, baud, serial)
+    config = args.config
+    logger.debug('Board arguments: model=%s, baud=%s, serial=%s, config=%s', model, baud, serial, config)
 
     try:
-        board = get_board(serial, model, baud)
+        board = get_board(serial, model, baud, config)
     except Exception as e:
         raise e
 
