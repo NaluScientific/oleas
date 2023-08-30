@@ -66,7 +66,7 @@ def main():
         sys.exit(1)
 
     if args.config:
-        config_path: Path = Path(args.output).resolve()
+        config_path: Path = Path(args.config).resolve()
         if not config_path.exists():
             print(f'Config file does not exist: {config_path}')
             sys.exit(1)
