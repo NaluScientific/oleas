@@ -60,9 +60,7 @@ def get_board(serial: str, model: str='aodsoc_aods', baud=None, config: str=None
     Returns:
         _type_: _description_
     """
-    board = Board(model)
-    if config:
-        board.load_registers(config)
+    board = Board(model, registers=config)
     baud = baud or max(board.params['possible_bauds'].keys())
     board.get_ftdi_connection(serial_number=serial, baud=baud)
     return board
