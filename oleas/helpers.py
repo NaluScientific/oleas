@@ -216,4 +216,4 @@ def set_default_gain_stages(board):
         gc.ch0_external_input()
         gc.ch1_8x_ch0()
         gc.ch2_8x_ch1()
-        gc.ch3_8x_ch2() # use of channel 3 isn't planned, but might come in handy
+        gc.ch3_external_input() # use of channel 3 isn't planned, but might come in handy
